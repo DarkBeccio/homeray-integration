@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Homeray",
+        "description": "Aggiunge i controlli che le card Homeray non possono fare da sole: dispositivi diventati muti, ogni tipo di sensore di batteria e la rete di casa per la mappa. Legge solo i dati di Home Assistant."
+      }
+    },
+    "abort": {
+      "already_configured": "Homeray è già configurata.",
+      "single_instance_allowed": "Homeray è già configurata."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni di Homeray",
+        "data": {
+          "silent_hours": "Muto dopo (ore)",
+          "silent_scope": "Dispositivi da controllare",
+          "battery_threshold": "Batteria scarica sotto (%)",
+          "ignore_rechargeable": "Ignora le batterie ricaricabili (telefoni, accumulo di casa)",
+          "exclude_label": "Etichetta dei dispositivi da ignorare"
+        },
+        "data_description": {
+          "silent_hours": "Un dispositivo che risulta disponibile ma non manda nulla da questo tempo è elencato come muto.",
+          "silent_scope": "Di solito sono i dispositivi a batteria a spegnersi senza avvisare.",
+          "battery_threshold": "I sensori in percentuale sotto questo valore contano come scarichi.",
+          "ignore_rechargeable": "Esclude i telefoni e i dispositivi con un sensore di ricarica o di accumulo, per cui un livello basso è normale.",
+          "exclude_label": "La stessa etichetta usata dalla card dei problemi di Homeray (ID dell'etichetta)."
+        }
+      }
+    }
+  },
+  "selector": {
+    "silent_scope": {
+      "options": {
+        "battery": "Solo dispositivi a batteria",
+        "all": "Tutti i dispositivi con sensori"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "silent_devices": {
+        "name": "Dispositivi muti"
+      },
+      "low_batteries": {
+        "name": "Batterie scariche"
+      }
+    }
+  }
+}

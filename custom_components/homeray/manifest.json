@@ -1,0 +1,14 @@
+{
+  "domain": "homeray",
+  "name": "Homeray",
+  "codeowners": ["@DarkBeccio"],
+  "config_flow": true,
+  "dependencies": ["websocket_api"],
+  "documentation": "https://github.com/DarkBeccio/homeray-integration",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/DarkBeccio/homeray-integration/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "1.0.0"
+}

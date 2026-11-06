@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Homeray",
+        "description": "Adds the checks that the Homeray cards cannot do on their own: devices that went silent, every kind of battery sensor, and your home network for the map. It only reads Home Assistant's own data."
+      }
+    },
+    "abort": {
+      "already_configured": "Homeray is already set up.",
+      "single_instance_allowed": "Homeray is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Homeray options",
+        "data": {
+          "silent_hours": "Silent after (hours)",
+          "silent_scope": "Devices to watch for silence",
+          "battery_threshold": "Low battery below (%)",
+          "ignore_rechargeable": "Ignore rechargeable batteries (phones, home storage)",
+          "exclude_label": "Label of devices to ignore"
+        },
+        "data_description": {
+          "silent_hours": "A device that still looks available but has sent nothing for this long is listed as silent.",
+          "silent_scope": "Battery devices are the ones that usually die without warning.",
+          "battery_threshold": "Percentage sensors below this value count as low.",
+          "ignore_rechargeable": "Leaves out phones and devices with a charging or storage sensor, whose low level is normal.",
+          "exclude_label": "The same label used by the Homeray issues card (label ID)."
+        }
+      }
+    }
+  },
+  "selector": {
+    "silent_scope": {
+      "options": {
+        "battery": "Battery-powered devices only",
+        "all": "All devices with sensors"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "silent_devices": {
+        "name": "Silent devices"
+      },
+      "low_batteries": {
+        "name": "Low batteries"
+      }
+    }
+  }
+}
