@@ -29,6 +29,13 @@
 
 ## Installation
 
+**Home Assistant 2026.11 or newer (Marketplace):**
+
+1. Settings → **Marketplace** → **Add from link** (top right) → `https://github.com/DarkBeccio/homeray-integration` → Add.
+2. Find **Homeray** (type Integration) → **Install**. The setup opens by itself; a restart may be asked after updates.
+
+**Older versions with HACS:**
+
 1. HACS → three dots (top right) → **Custom repositories** → `https://github.com/DarkBeccio/homeray-integration`, type **Integration**.
 2. Search for **Homeray** in HACS, **Download**, then restart Home Assistant.
 3. Settings → Devices & services → **Add integration** → **Homeray**.
