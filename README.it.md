@@ -65,6 +65,10 @@ Per i dispositivi che Homeray non riconosce, o per correggerlo, dai al dispositi
 
 Riconosciuti oggi: FRITZ!, UniFi, TP-Link Omada, devolo, ASUS, Netgear, MikroTik, OpenWrt, Keenetic, Huawei LTE, Vodafone Station, Freebox, SFR Box, router UPnP, Synology, QNAP, TrueNAS, Proxmox e l'host di Home Assistant.
 
+## Per chi sviluppa card
+
+Due comandi WebSocket, in sola lettura e solo per gli amministratori: `homeray/status` (dispositivi muti, batterie, opzioni) e `homeray/network` (piani e apparati di rete). Homeray è pensato per chi gestisce la domotica; gli altri utenti ricevono l'errore `unauthorized`.
+
 ## Assistenza
 
 Problemi e idee: [GitHub issues](https://github.com/DarkBeccio/homeray-integration/issues) o support@homeray.app. Se Homeray ti è utile, puoi [offrirmi un caffè](https://paypal.me/AndreaGuarducci1992).

@@ -85,7 +85,7 @@ Recognised today: FRITZ!, UniFi, TP-Link Omada, devolo, ASUS, Netgear, MikroTik,
 
 ## For card developers
 
-Two WebSocket commands, read-only: `homeray/status` (silent devices, batteries, options) and `homeray/network` (floors and network devices).
+Two WebSocket commands, read-only and for administrators only: `homeray/status` (silent devices, batteries, options) and `homeray/network` (floors and network devices). Homeray is meant for whoever runs the smart home; other users get an `unauthorized` error.
 
 ## Support
 

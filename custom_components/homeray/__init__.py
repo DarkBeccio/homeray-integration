@@ -74,6 +74,7 @@ def _register_ws(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_network)
 
 
+@websocket_api.require_admin
 @websocket_api.websocket_command({vol.Required("type"): "homeray/status"})
 @callback
 def ws_status(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
@@ -85,6 +86,7 @@ def ws_status(hass: HomeAssistant, connection: websocket_api.ActiveConnection, m
     connection.send_result(msg["id"], {"version": 1, **coord.snapshot()})
 
 
+@websocket_api.require_admin
 @websocket_api.websocket_command({vol.Required("type"): "homeray/network"})
 @callback
 def ws_network(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:

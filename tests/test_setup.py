@@ -52,3 +52,13 @@ async def test_sensors_and_websocket(hass, hass_ws_client):
 async def test_unload(hass):
     e = await _setup(hass)
     assert await hass.config_entries.async_unload(e.entry_id)
+
+
+async def test_websocket_requires_admin(hass, hass_ws_client, hass_read_only_access_token):
+    await _setup(hass)
+    ws = await hass_ws_client(hass, hass_read_only_access_token)
+    for i, cmd in enumerate(("homeray/status", "homeray/network"), start=1):
+        await ws.send_json({"id": i, "type": cmd})
+        msg = await ws.receive_json()
+        assert not msg["success"]
+        assert msg["error"]["code"] == "unauthorized"
