@@ -105,6 +105,8 @@ def silent_devices(hass: HomeAssistant, opts: dict[str, Any], now: datetime | No
                 continue  # nothing to judge, or the whole device is unavailable (that is "not responding")
             if opts[CONF_SILENT_SCOPE] == SCOPE_BATTERY and not any(_is_battery(e, s) for e, s in rows):
                 continue
+            if opts[CONF_IGNORE_RECHARGEABLE] and any(e.platform in RECHARGEABLE_PLATFORMS for e, _ in rows):
+                continue  # a phone app that goes quiet is normal (closed app, phone away)
             last = max(getattr(s, "last_reported", None) or s.last_updated for _, s in good)
             age = (now - last).total_seconds() / 3600
             if age >= hours:

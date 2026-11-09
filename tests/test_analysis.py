@@ -89,3 +89,12 @@ async def test_battery_threshold_and_entity_label(hass):
     d2 = device(hass, cfg, "Other")
     entity(hass, cfg, d2, "sensor", "y", "5", device_class="battery", labels=["fuori_monitoraggio"])
     assert len(low_batteries(hass, {**OPTS, "battery_threshold": 40})) == 1
+
+
+async def test_phone_app_is_not_silent(hass, freezer):
+    cfg = entry(hass, "mobile_app")
+    ph = device(hass, cfg, "iPhone")
+    entity(hass, cfg, ph, "sensor", "pb", "80", device_class="battery")
+    freezer.tick(timedelta(hours=40))
+    assert silent_devices(hass, OPTS)["devices"] == []
+    assert len(silent_devices(hass, {**OPTS, "ignore_rechargeable": False})["devices"]) == 1

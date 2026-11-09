@@ -2,7 +2,14 @@ from homeassistant.helpers import area_registry as ar, floor_registry as fr
 
 from custom_components.homeray.network import discover
 
-from .helpers import device, entity, entry
+from .helpers import device as _device, entity, entry
+
+
+def device(hass, cfg, name, **kw):
+    """Network gear always has some entity besides a tracker."""
+    d = _device(hass, cfg, name, **kw)
+    entity(hass, cfg, d, "sensor", "up_" + name, "1")
+    return d
 
 
 async def _home(hass):
@@ -78,3 +85,27 @@ async def test_duplicate_names_get_unique_ids(hass):
     device(hass, unifi2, "AP", model="U6-Lite", mac="bb:00:00:00:00:02")
     ids = [n["id"] for n in discover(hass)["nodes"]]
     assert len(ids) == len(set(ids))
+
+
+async def test_real_home_shapes(hass):
+    """Shapes seen on a real install: router plugins add one device per client, hosts carry a scheme,
+    a second router works as an access point, Home Assistant apps are not servers."""
+    voda = entry(hass, "vodafone_station", data={"host": "192.168.1.1"})
+    device(hass, voda, "Vodafone Station", mac="aa:00:00:00:00:01")
+    phone = _device(hass, voda, "Phone", mac="aa:00:00:00:00:99")
+    entity(hass, voda, phone, "device_tracker", "ph", "home", {"mac": "aa:00:00:00:00:99", "ip": "192.168.1.50"})
+    tpl = entry(hass, "tplink_router", data={"host": "http://192.168.1.77"})
+    device(hass, tpl, "Archer AX12", model="Archer AX12", mac="aa:00:00:00:00:02")
+    plug = _device(hass, tpl, "Tapo_SmartPlug", mac="aa:00:00:00:00:98")
+    entity(hass, tpl, plug, "device_tracker", "pl", "home")
+    hassio = entry(hass, "hassio")
+    device(hass, hassio, "Home Assistant Host", model="Home Assistant Host")
+    device(hass, hassio, "File editor", model="Home Assistant App")
+    device(hass, hassio, "Home Assistant Core", model="Home Assistant Core")
+    ping = entry(hass, "ping", data={}, options={"host": "192.168.1.77"})
+    pe = entity(hass, ping, None, "binary_sensor", "p77", "on", device_class="connectivity")
+    r = discover(hass)
+    by = {n["name"]: n for n in r["nodes"]}
+    assert set(by) == {"Vodafone Station", "Archer AX12", "Home Assistant Host"}
+    assert by["Vodafone Station"]["type"] == "router" and by["Archer AX12"]["type"] == "ap"
+    assert by["Archer AX12"]["ip"] == "192.168.1.77" and by["Archer AX12"]["entity"] == pe

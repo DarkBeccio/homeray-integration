@@ -23,8 +23,9 @@ from .const import LABEL_HIDE, LABEL_TYPES
 
 # Integrations whose main device is the home router.
 ROUTER_DOMAINS = {
+    "tplink_router", "tplink_deco_router",
     "fritz", "asuswrt", "netgear", "mikrotik", "luci", "ubus", "keenetic_ndms2",
-    "huawei_lte", "vodafone_station", "freebox", "sfr_box", "bbox", "tplink_router",
+    "huawei_lte", "vodafone_station", "freebox", "sfr_box", "bbox",
     "upnp",
 }
 SERVER_DOMAINS = {"synology_dsm", "qnap", "qnap_qsw", "truenas", "proxmoxve", "unraid", "glances"}
@@ -73,8 +74,8 @@ def _classify(hass: HomeAssistant, dev: dr.DeviceEntry, ent_reg: er.EntityRegist
             for e in er.async_entries_for_device(ent_reg, dev.id)
         )
         return "plcwifi" if wifi else "plc"
-    if "hassio" in domains and (dev.model or "").lower().startswith("home assistant"):
-        return "server"
+    if "hassio" in domains:
+        return "server" if (dev.model or "").lower() == "home assistant host" else None
     if domains & SERVER_DOMAINS:
         return "server"
     if domains & {"unifi", "tplink_omada", "tplink_deco", "omada", "deco"}:
@@ -82,6 +83,22 @@ def _classify(hass: HomeAssistant, dev: dr.DeviceEntry, ent_reg: er.EntityRegist
     if domains & ROUTER_DOMAINS:
         return _model_type(model) if "fritz" in domains and "repeater" in model.lower() else "router"
     return None
+
+
+def _tracker_only(dev: dr.DeviceEntry, ent_reg: er.EntityRegistry) -> bool:
+    """Router integrations add one device per connected client, with only a device_tracker: not network gear."""
+    ents = [e for e in er.async_entries_for_device(ent_reg, dev.id) if not e.disabled_by]
+    return not ents or all(e.domain == "device_tracker" for e in ents)
+
+
+def _host(value: Any) -> str | None:
+    """'http://192.168.1.77:80/' -> '192.168.1.77'."""
+    if not value:
+        return None
+    h = re.sub(r"^[a-z]+://", "", str(value).strip(), flags=re.I).split("/")[0]
+    if h.startswith("["):
+        return h.split("]")[0] + "]"
+    return h.rsplit(":", 1)[0] if h.count(":") == 1 else h
 
 
 def _ip_by_mac(hass: HomeAssistant) -> dict[str, str]:
@@ -96,7 +113,7 @@ def _ip_by_mac(hass: HomeAssistant) -> dict[str, str]:
 def _ping_by_host(hass: HomeAssistant, ent_reg: er.EntityRegistry) -> dict[str, str]:
     out = {}
     for entry in hass.config_entries.async_entries("ping"):
-        host = str(entry.options.get("host") or entry.data.get("host") or "").lower()
+        host = (_host(entry.options.get("host") or entry.data.get("host")) or "").lower()
         if not host:
             continue
         for ent in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
@@ -121,6 +138,9 @@ def discover(hass: HomeAssistant) -> dict[str, Any]:
     seen_macs: set[str] = set()
     for dev in dev_reg.devices.values():
         if dev.disabled_by or LABEL_HIDE in dev.labels:
+            continue
+        labelled = any(lab in dev.labels for lab in LABEL_TYPES)
+        if not labelled and _tracker_only(dev, ent_reg):
             continue
         kind = _classify(hass, dev, ent_reg)
         if not kind:
@@ -156,7 +176,7 @@ def discover(hass: HomeAssistant) -> dict[str, Any]:
             for eid in dev.config_entries:
                 entry = hass.config_entries.async_get_entry(eid)
                 if entry and entry.domain in ROUTER_DOMAINS | SERVER_DOMAINS | PLC_DOMAINS and entry.data.get("host"):
-                    ip = str(entry.data["host"])
+                    ip = _host(entry.data["host"])
                     break
         status = None
         for ent in er.async_entries_for_device(ent_reg, dev.id):
@@ -184,6 +204,7 @@ def discover(hass: HomeAssistant) -> dict[str, Any]:
                 "entity": status,
                 "url": f"/config/devices/device/{dev.id}",
                 "up": kind == "server" and "hassio" in _domains(hass, dev),
+                "_labelled": any(lab in dev.labels for lab in LABEL_TYPES),
             }
         )
 
@@ -198,6 +219,10 @@ def discover(hass: HomeAssistant) -> dict[str, Any]:
         nodes.insert(0, root)
         synthetic = True
     root["parent"] = None
+    # a second router in the same home works as an access point (mesh, repeater, or a router with DHCP off)
+    for n in nodes:
+        if n is not root and n["type"] == "router" and not n.get("_labelled"):
+            n["type"] = "ap"
     for n in nodes:
         if n is not root and (not n["parent"] or n["parent"] == n["id"]):
             n["parent"] = root["id"]
@@ -213,4 +238,6 @@ def discover(hass: HomeAssistant) -> dict[str, Any]:
             cur = by.get(cur["parent"]) or root
             if cur is root:
                 break
+    for n in nodes:
+        n.pop("_labelled", None)
     return {"floors": floor_list, "nodes": nodes, "synthetic_router": synthetic}
